@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { apiToWsUrl, setStoredApiUrl } from "@/lib/runtimeConfig";
+import { getRosbridgeUrl, setStoredApiUrl } from "@/lib/runtimeConfig";
 
 interface ConnectionSettingsProps {
   apiUrl: string;
@@ -34,7 +34,7 @@ export default function ConnectionSettings({ apiUrl, connected, onApiUrlChange }
         </button>
       </div>
       <p className={`mt-2 text-sm font-semibold ${connected ? "text-emerald-700" : "text-red-700"}`}>
-        ROS2 relay: {connected ? "connected" : "disconnected"} | {apiToWsUrl(apiUrl)}
+        ROS2 direct: {connected ? "connected" : "disconnected"} | {getRosbridgeUrl()}
       </p>
     </div>
   );

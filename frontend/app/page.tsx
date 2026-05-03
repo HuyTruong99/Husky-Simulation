@@ -1,16 +1,18 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
-import ComparisonChart from "@/components/ComparisonChart";
 import ConnectionSettings from "@/components/ConnectionSettings";
-import HuskyViewer3D from "@/components/HuskyViewer3D";
-import MapViewer from "@/components/MapViewer";
 import RecordingTable from "@/components/RecordingTable";
 import ScenarioPanel from "@/components/ScenarioPanel";
 import StatusPanel from "@/components/StatusPanel";
-import { apiToWsUrl, getStoredApiUrl } from "@/lib/runtimeConfig";
+import { getRosbridgeUrl, getStoredApiUrl } from "@/lib/runtimeConfig";
 import { rosClient } from "@/lib/ros";
 import type { RecordingRow, RobotPose, Scenario, Waypoint } from "@/types";
+
+const HuskyViewer3D = dynamic(() => import("@/components/HuskyViewer3D"), { ssr: false });
+const MapViewer = dynamic(() => import("@/components/MapViewer"), { ssr: false });
+const ComparisonChart = dynamic(() => import("@/components/ComparisonChart"), { ssr: false });
 
 export default function DashboardPage() {
   const [apiUrl, setApiUrl] = useState("http://localhost:8000");
@@ -31,7 +33,6 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    rosClient.setUrl(apiToWsUrl(apiUrl));
     rosClient.connect(setConnected);
     const timer = setInterval(() => fetch(`${apiUrl}/health`).catch(() => undefined), 14 * 60 * 1000);
     return () => clearInterval(timer);
@@ -71,7 +72,7 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-black tracking-tight">URDF-driven ROS2 operations console</h1>
           </div>
           <div className={`rounded-full px-4 py-2 text-sm font-bold ${connected ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-            ROS2: {connected ? "CONNECTED" : "DISCONNECTED"} {apiToWsUrl(apiUrl)}
+            ROS2: {connected ? "CONNECTED" : "DISCONNECTED"} {getRosbridgeUrl()}
           </div>
         </header>
 

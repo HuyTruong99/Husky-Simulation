@@ -6,7 +6,7 @@ class RosClient {
   private ros: any = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private backoffMs = 1000;
-  private url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
+  private url = process.env.NEXT_PUBLIC_ROSBRIDGE_URL || "ws://localhost:9090";
   private roslib: any = null;
 
   setUrl(url: string) {

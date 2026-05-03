@@ -2,5 +2,12 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_ROSBRIDGE_URL": "ws://localhost:9090",
+    "NEXT_PUBLIC_API_URL": "https://husky-backend.onrender.com",
+    "NEXT_PUBLIC_MAP_ORIGIN_X": "-13.670",
+    "NEXT_PUBLIC_MAP_ORIGIN_Y": "-10.462",
+    "NEXT_PUBLIC_MAP_RESOLUTION": "0.05"
+  }
 }

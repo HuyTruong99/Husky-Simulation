@@ -27,3 +27,7 @@ export function apiToWsUrl(apiUrl: string): string {
   if (normalized.startsWith("http://")) return normalized.replace("http://", "ws://") + "/ws";
   return normalized;
 }
+
+export function getRosbridgeUrl(): string {
+  return process.env.NEXT_PUBLIC_ROSBRIDGE_URL || "ws://localhost:9090";
+}
