@@ -9,16 +9,11 @@ services:
       - key: ROSBRIDGE_URL
         value: ws://YOUR_LOCAL_IP:9090
       - key: RECORDINGS_PATH
-        value: /data/recordings
+        value: /tmp/recordings
       - key: CORS_ORIGINS
         value: https://husky-frontend.onrender.com,http://localhost:3000
       - key: UPLOAD_SECRET
         value: changeme123
-    disk:
-      name: recordings-disk
-      mountPath: /data/recordings
-      sizeGB: 5
-
   - type: web
     name: husky-frontend
     runtime: node
