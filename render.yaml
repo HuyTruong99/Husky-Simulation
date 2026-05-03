@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: husky-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ROSBRIDGE_URL
+        value: ws://YOUR_LOCAL_IP:9090
+      - key: RECORDINGS_PATH
+        value: /data/recordings
+      - key: CORS_ORIGINS
+        value: https://husky-frontend.onrender.com,http://localhost:3000
+      - key: UPLOAD_SECRET
+        value: changeme123
+    disk:
+      name: recordings-disk
+      mountPath: /data/recordings
+      sizeGB: 5
+
+  - type: web
+    name: husky-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://husky-backend.onrender.com
+      - key: NEXT_PUBLIC_WS_URL
+        value: wss://husky-backend.onrender.com/ws
+      - key: NEXT_PUBLIC_MAP_ORIGIN_X
+        value: "-13.670"
+      - key: NEXT_PUBLIC_MAP_ORIGIN_Y
+        value: "-10.462"
+      - key: NEXT_PUBLIC_MAP_RESOLUTION
+        value: "0.05"

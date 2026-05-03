@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<robot name="husky_a200_simplified">
+  <material name="body_gray"><color rgba="0.5 0.5 0.5 1"/></material>
+  <material name="dark_gray"><color rgba="0.13 0.13 0.13 1"/></material>
+  <link name="base_link">
+    <visual>
+      <geometry><box size="0.98 0.57 0.25"/></geometry>
+      <material name="body_gray"/>
+    </visual>
+    <collision><geometry><box size="0.98 0.57 0.25"/></geometry></collision>
+  </link>
+  <link name="top_plate">
+    <visual>
+      <origin xyz="0 0 0.14"/>
+      <geometry><box size="0.80 0.50 0.02"/></geometry>
+      <material name="dark_gray"/>
+    </visual>
+  </link>
+  <joint name="top_plate_fixed" type="fixed">
+    <parent link="base_link"/><child link="top_plate"/>
+  </joint>
+  <link name="bumper_front">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry><box size="0.10 0.54 0.09"/></geometry>
+      <material name="dark_gray"/>
+    </visual>
+  </link>
+  <joint name="bumper_front_fixed" type="fixed">
+    <parent link="base_link"/><child link="bumper_front"/>
+    <origin xyz="0.49 0 0"/>
+  </joint>
+  <link name="bumper_rear">
+    <visual>
+      <geometry><box size="0.10 0.54 0.09"/></geometry>
+      <material name="dark_gray"/>
+    </visual>
+  </link>
+  <joint name="bumper_rear_fixed" type="fixed">
+    <parent link="base_link"/><child link="bumper_rear"/>
+    <origin xyz="-0.49 0 0"/>
+  </joint>
+  <link name="front_left_wheel_link"><visual><geometry><cylinder radius="0.1651" length="0.1143"/></geometry><material name="dark_gray"/></visual></link>
+  <link name="front_right_wheel_link"><visual><geometry><cylinder radius="0.1651" length="0.1143"/></geometry><material name="dark_gray"/></visual></link>
+  <link name="rear_left_wheel_link"><visual><geometry><cylinder radius="0.1651" length="0.1143"/></geometry><material name="dark_gray"/></visual></link>
+  <link name="rear_right_wheel_link"><visual><geometry><cylinder radius="0.1651" length="0.1143"/></geometry><material name="dark_gray"/></visual></link>
+  <joint name="front_left_wheel_link" type="continuous">
+    <parent link="base_link"/><child link="front_left_wheel_link"/><origin xyz="0.256 0.285 -0.05" rpy="1.5708 0 0"/><axis xyz="0 0 1"/>
+  </joint>
+  <joint name="front_right_wheel_link" type="continuous">
+    <parent link="base_link"/><child link="front_right_wheel_link"/><origin xyz="0.256 -0.285 -0.05" rpy="1.5708 0 0"/><axis xyz="0 0 1"/>
+  </joint>
+  <joint name="rear_left_wheel_link" type="continuous">
+    <parent link="base_link"/><child link="rear_left_wheel_link"/><origin xyz="-0.256 0.285 -0.05" rpy="1.5708 0 0"/><axis xyz="0 0 1"/>
+  </joint>
+  <joint name="rear_right_wheel_link" type="continuous">
+    <parent link="base_link"/><child link="rear_right_wheel_link"/><origin xyz="-0.256 -0.285 -0.05" rpy="1.5708 0 0"/><axis xyz="0 0 1"/>
+  </joint>
+</robot>
