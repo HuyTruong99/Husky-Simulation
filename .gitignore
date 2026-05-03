@@ -2,7 +2,10 @@ husky-simulation-console-render.zip
 frontend/.next/
 frontend/node_modules/
 frontend/out/
+frontend/.env.local
 backend/__pycache__/
 backend/.venv/
+backend/.env.local
+backend/recordings/
 *.pyc
 *.csv

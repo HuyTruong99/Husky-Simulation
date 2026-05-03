@@ -2,18 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import ComparisonChart from "@/components/ComparisonChart";
+import ConnectionSettings from "@/components/ConnectionSettings";
 import HuskyViewer3D from "@/components/HuskyViewer3D";
 import MapViewer from "@/components/MapViewer";
 import RecordingTable from "@/components/RecordingTable";
 import ScenarioPanel from "@/components/ScenarioPanel";
 import StatusPanel from "@/components/StatusPanel";
+import { apiToWsUrl, getStoredApiUrl } from "@/lib/runtimeConfig";
 import { rosClient } from "@/lib/ros";
 import type { RecordingRow, RobotPose, Scenario, Waypoint } from "@/types";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const rosbridgeLabel = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
-
 export default function DashboardPage() {
+  const [apiUrl, setApiUrl] = useState("http://localhost:8000");
   const [connected, setConnected] = useState(false);
   const [pose, setPose] = useState<RobotPose>({ x: 0, y: 0, z: 0, yaw: 0 });
   const [scenario, setScenario] = useState<Scenario>("clear");
@@ -26,10 +26,16 @@ export default function DashboardPage() {
   const [comparisonRuns, setComparisonRuns] = useState<RecordingRow[][]>([]);
 
   useEffect(() => {
+    const initial = getStoredApiUrl();
+    setApiUrl(initial);
+  }, []);
+
+  useEffect(() => {
+    rosClient.setUrl(apiToWsUrl(apiUrl));
     rosClient.connect(setConnected);
     const timer = setInterval(() => fetch(`${apiUrl}/health`).catch(() => undefined), 14 * 60 * 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [apiUrl]);
 
   useEffect(() => {
     if (!active || !startedAt) return;
@@ -65,9 +71,13 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-black tracking-tight">URDF-driven ROS2 operations console</h1>
           </div>
           <div className={`rounded-full px-4 py-2 text-sm font-bold ${connected ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-            ROS2: {connected ? "CONNECTED" : "DISCONNECTED"} {rosbridgeLabel}
+            ROS2: {connected ? "CONNECTED" : "DISCONNECTED"} {apiToWsUrl(apiUrl)}
           </div>
         </header>
+
+        <div className="mb-4">
+          <ConnectionSettings apiUrl={apiUrl} connected={connected} onApiUrlChange={setApiUrl} />
+        </div>
 
         <section className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_300px]">
           <div className="order-2 xl:order-1">
@@ -94,7 +104,7 @@ export default function DashboardPage() {
 
         <div className="mt-4 grid gap-4">
           <MapViewer pose={pose} waypointA={waypointA} waypointB={waypointB} />
-          <RecordingTable onCompare={(rows) => setComparisonRuns((current) => [...current.slice(-3), rows])} />
+          <RecordingTable apiUrl={apiUrl} onCompare={(rows) => setComparisonRuns((current) => [...current.slice(-3), rows])} />
           <ComparisonChart runs={comparisonRuns} metric="distance_to_goal" />
         </div>
       </div>

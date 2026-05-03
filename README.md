@@ -37,6 +37,68 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+## Localhost Setup On Windows
+
+Open three PowerShell windows.
+
+Terminal 1, start rosbridge after ROS2 Jazzy is sourced:
+
+```powershell
+cd "C:\Users\HuyTr\Documents\Codex\2026-05-03\files-mentioned-by-the-user-husky\fullstack-publish"
+.\scripts\start-rosbridge-local.ps1
+```
+
+Terminal 2, start the FastAPI relay:
+
+```powershell
+cd "C:\Users\HuyTr\Documents\Codex\2026-05-03\files-mentioned-by-the-user-husky\fullstack-publish"
+.\scripts\start-backend-local.ps1
+```
+
+Terminal 3, start the Next.js dashboard:
+
+```powershell
+cd "C:\Users\HuyTr\Documents\Codex\2026-05-03\files-mentioned-by-the-user-husky\fullstack-publish"
+.\scripts\start-frontend-local.ps1
+```
+
+Then open:
+
+```text
+http://localhost:3000
+```
+
+Local ports:
+
+- Frontend: `http://localhost:3000`
+- Backend health: `http://localhost:8000/health`
+- WebSocket relay: `ws://localhost:8000/ws`
+- Local rosbridge: `ws://127.0.0.1:9090`
+
+## Vercel Frontend + ngrok Local Backend
+
+Use this when you want the dashboard UI hosted by Vercel, while FastAPI and rosbridge stay on your computer.
+
+1. Start ROS2 and rosbridge locally:
+
+```powershell
+.\scripts\start-rosbridge-local.ps1
+```
+
+2. Start the backend and expose it with ngrok:
+
+```powershell
+.\scripts\start-backend-ngrok-local.ps1
+```
+
+3. Copy the public `https://...ngrok...` URL from ngrok.
+
+4. Deploy the frontend on Vercel with root directory `frontend`.
+
+5. Open the Vercel URL, paste the ngrok backend URL into the "Backend URL from ngrok" field, then click Connect.
+
+This works even if ngrok gives you a new URL later. Paste the new URL in the dashboard instead of rebuilding the Vercel app.
+
 ## ROS2 Recorder Upload
 
 Set:

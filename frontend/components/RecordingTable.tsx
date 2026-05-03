@@ -5,15 +5,13 @@ import { parseRecordingCsv } from "@/lib/csvParser";
 import type { RecordingMeta, RecordingRow } from "@/types";
 import HuskyReplay3D from "./HuskyReplay3D";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-export default function RecordingTable({ onCompare }: { onCompare: (rows: RecordingRow[]) => void }) {
+export default function RecordingTable({ apiUrl, onCompare }: { apiUrl: string; onCompare: (rows: RecordingRow[]) => void }) {
   const [recordings, setRecordings] = useState<RecordingMeta[]>([]);
   const [replayRows, setReplayRows] = useState<RecordingRow[] | null>(null);
 
   useEffect(() => {
     fetch(`${apiUrl}/recordings`).then((res) => res.json()).then(setRecordings).catch(() => setRecordings([]));
-  }, []);
+  }, [apiUrl]);
 
   async function loadRows(id: string) {
     const text = await fetch(`${apiUrl}/recordings/${id}/download`).then((res) => res.text());

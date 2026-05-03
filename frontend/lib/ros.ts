@@ -10,6 +10,16 @@ class RosClient {
   private backoffMs = 1000;
   private url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
 
+  setUrl(url: string) {
+    if (this.url === url) return;
+    this.url = url;
+    this.reconnectTimer && clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.ros?.close();
+    this.ros = null;
+    this.backoffMs = 1000;
+  }
+
   connect(onStatus?: (connected: boolean) => void) {
     if (this.ros) return this.ros;
 
