@@ -8,7 +8,7 @@ export default function StatusPanel({ connected, pose, scenario, runId }: { conn
       <h2 className="mb-4 text-lg font-bold">Live Telemetry</h2>
       <div className="grid gap-3">
         <Metric label="Connection" value={connected ? "ROS2 connected" : "Disconnected"} tone={connected ? "green" : "red"} />
-        <Metric label="Scenario" value={scenario.replaceAll("_", " ")} />
+        <Metric label="Scenario" value={scenario.replace(/_/g, " ")} />
         <Metric label="Run ID" value={runId || "No active run"} />
         <Metric label="Pose X" value={`${pose.x.toFixed(2)} m`} />
         <Metric label="Pose Y" value={`${pose.y.toFixed(2)} m`} />

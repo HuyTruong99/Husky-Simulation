@@ -1,14 +1,13 @@
 "use client";
 
-import ROSLIB from "roslib";
-
 type Listener<T> = (message: T) => void;
 
 class RosClient {
-  private ros: ROSLIB.Ros | null = null;
+  private ros: any = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private backoffMs = 1000;
   private url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
+  private roslib: any = null;
 
   setUrl(url: string) {
     if (this.url === url) return;
@@ -20,8 +19,13 @@ class RosClient {
     this.backoffMs = 1000;
   }
 
-  connect(onStatus?: (connected: boolean) => void) {
+  async connect(onStatus?: (connected: boolean) => void) {
     if (this.ros) return this.ros;
+    if (typeof window === "undefined") return null;
+    if (!this.roslib) {
+      this.roslib = await import("roslib");
+    }
+    const ROSLIB = this.roslib.default ?? this.roslib;
 
     this.ros = new ROSLIB.Ros({ url: this.url });
     this.ros.on("connection", () => {
@@ -40,10 +44,18 @@ class RosClient {
   }
 
   topic<T>(name: string, messageType: string, listener: Listener<T>) {
-    const ros = this.connect();
-    const topic = new ROSLIB.Topic({ ros, name, messageType });
-    topic.subscribe(listener as Listener<unknown>);
-    return () => topic.unsubscribe(listener as Listener<unknown>);
+    let topic: any = null;
+    let active = true;
+    this.connect().then((ros) => {
+      if (!active || !ros) return;
+      const ROSLIB = this.roslib.default ?? this.roslib;
+      topic = new ROSLIB.Topic({ ros, name, messageType });
+      topic.subscribe(listener as Listener<unknown>);
+    });
+    return () => {
+      active = false;
+      topic?.unsubscribe(listener as Listener<unknown>);
+    };
   }
 
   private scheduleReconnect(onStatus?: (connected: boolean) => void) {

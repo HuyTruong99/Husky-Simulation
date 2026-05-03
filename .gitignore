@@ -9,3 +9,4 @@ backend/.env.local
 backend/recordings/
 *.pyc
 *.csv
+*.tsbuildinfo

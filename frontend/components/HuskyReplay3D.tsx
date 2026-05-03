@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import URDFLoader from "urdf-loader";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { RecordingRow } from "@/types";
 
 interface HuskyReplay3DProps {
@@ -15,24 +12,36 @@ interface HuskyReplay3DProps {
 export default function HuskyReplay3D({ csvData, isPlaying, speed }: HuskyReplay3DProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const robotRef = useRef<any>(null);
-  const lineRef = useRef<THREE.Line | null>(null);
+  const lineRef = useRef<any>(null);
+  const threeRef = useRef<any>(null);
   const frameRef = useRef(0);
   const [frame, setFrame] = useState(0);
 
   useEffect(() => {
+    let disposed = false;
     const mount = mountRef.current;
     if (!mount) return;
+
+    async function setupScene() {
+    const mountEl = mountRef.current;
+    if (disposed || !mountEl) return;
+    const THREE = await import("three");
+    const { default: URDFLoader } = await import("urdf-loader");
+    const { OrbitControls } = await import("three/examples/jsm/controls/OrbitControls.js");
+    if (disposed) return;
+    threeRef.current = THREE;
+
     const scene = new THREE.Scene();
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(2, 5, 3);
     scene.add(light);
     scene.add(new THREE.GridHelper(20, 40));
-    const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.01, 100);
+    const camera = new THREE.PerspectiveCamera(45, mountEl.clientWidth / mountEl.clientHeight, 0.01, 100);
     camera.position.set(2, 1.5, 2);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(mount.clientWidth, mount.clientHeight);
-    mount.appendChild(renderer.domElement);
+    renderer.setSize(mountEl.clientWidth, mountEl.clientHeight);
+    mountEl.appendChild(renderer.domElement);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false;
     controls.minDistance = 0.5;
@@ -57,6 +66,16 @@ export default function HuskyReplay3D({ csvData, isPlaying, speed }: HuskyReplay
       renderer.dispose();
       renderer.domElement.remove();
     };
+    }
+
+    let cleanup: undefined | (() => void);
+    setupScene().then((nextCleanup) => {
+      cleanup = nextCleanup;
+    });
+    return () => {
+      disposed = true;
+      cleanup?.();
+    };
   }, []);
 
   useEffect(() => {
@@ -77,6 +96,8 @@ export default function HuskyReplay3D({ csvData, isPlaying, speed }: HuskyReplay
     ["front_left_wheel_link", "front_right_wheel_link", "rear_left_wheel_link", "rear_right_wheel_link"].forEach((joint) => {
       robot.joints?.[joint]?.setAngle(row[jointToCsv(joint)]);
     });
+    const THREE = threeRef.current;
+    if (!THREE) return;
     const points = csvData.slice(0, frame + 1).map((item) => new THREE.Vector3(item.pos_x, 0.02, -item.pos_y));
     lineRef.current?.geometry.setFromPoints(points);
   }, [csvData, frame]);

@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import URDFLoader from "urdf-loader";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { rosClient } from "@/lib/ros";
 import type { RobotPose } from "@/types";
 
@@ -18,13 +15,21 @@ const wheelJoints = ["front_left_wheel_link", "front_right_wheel_link", "rear_le
 export default function HuskyViewer3D({ rosConnected, scenario, onPoseUpdate }: HuskyViewer3DProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const robotRef = useRef<any>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const [pose, setPose] = useState<RobotPose>({ x: 0, y: 0, z: 0, yaw: 0 });
   const [navStatus, setNavStatus] = useState("IDLE");
 
   useEffect(() => {
+    let disposed = false;
     const mount = mountRef.current;
     if (!mount) return;
+
+    async function setupScene() {
+    const mountEl = mountRef.current;
+    if (disposed || !mountEl) return;
+    const THREE = await import("three");
+    const { default: URDFLoader } = await import("urdf-loader");
+    const { OrbitControls } = await import("three/examples/jsm/controls/OrbitControls.js");
+    if (disposed) return;
 
     const scene = new THREE.Scene();
     scene.background = null;
@@ -34,15 +39,14 @@ export default function HuskyViewer3D({ rosConnected, scenario, onPoseUpdate }: 
     scene.add(light);
     scene.add(new THREE.GridHelper(20, 40, 0x93a4b7, 0xd4dbe5));
 
-    const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.01, 100);
+    const camera = new THREE.PerspectiveCamera(45, mountEl.clientWidth / mountEl.clientHeight, 0.01, 100);
     camera.position.set(2, 1.5, 2);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(mount.clientWidth, mount.clientHeight);
-    mount.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+    renderer.setSize(mountEl.clientWidth, mountEl.clientHeight);
+    mountEl.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false;
@@ -57,9 +61,9 @@ export default function HuskyViewer3D({ rosConnected, scenario, onPoseUpdate }: 
     });
 
     const resize = () => {
-      camera.aspect = mount.clientWidth / mount.clientHeight;
+      camera.aspect = mountEl.clientWidth / mountEl.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(mount.clientWidth, mount.clientHeight);
+      renderer.setSize(mountEl.clientWidth, mountEl.clientHeight);
     };
     window.addEventListener("resize", resize);
 
@@ -76,6 +80,16 @@ export default function HuskyViewer3D({ rosConnected, scenario, onPoseUpdate }: 
       window.removeEventListener("resize", resize);
       renderer.dispose();
       renderer.domElement.remove();
+    };
+    }
+
+    let cleanup: undefined | (() => void);
+    setupScene().then((nextCleanup) => {
+      cleanup = nextCleanup;
+    });
+    return () => {
+      disposed = true;
+      cleanup?.();
     };
   }, []);
 
@@ -123,7 +137,7 @@ export default function HuskyViewer3D({ rosConnected, scenario, onPoseUpdate }: 
         <span className={`mr-2 inline-block h-2 w-2 rounded-full ${rosConnected ? "animate-pulse bg-emerald-500" : "bg-red-500"}`} />
         {rosConnected ? "LIVE" : "OFFLINE"}
       </div>
-      <div className="absolute right-4 top-4 rounded-full bg-white px-3 py-1 text-sm font-bold capitalize shadow">{scenario.replaceAll("_", " ")}</div>
+      <div className="absolute right-4 top-4 rounded-full bg-white px-3 py-1 text-sm font-bold capitalize shadow">{scenario.replace(/_/g, " ")}</div>
       <div className="absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-lg bg-slate-900/85 px-4 py-2 text-center text-sm font-semibold text-white">
         x: {pose.x.toFixed(2)} y: {pose.y.toFixed(2)} yaw: {pose.yaw.toFixed(2)}rad | nav: {navStatus}
       </div>
